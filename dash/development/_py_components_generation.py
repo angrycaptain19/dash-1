@@ -117,16 +117,16 @@ def generate_class_file(typename, props, description, namespace):
     Returns
     -------
     """
-    import_string = (
-        "# AUTO GENERATED FILE - DO NOT EDIT\n\n"
-        + "from dash.development.base_component import "
-        + "Component, _explicitize_args\n\n\n"
-    )
     class_string = generate_class_string(typename, props, description, namespace)
     file_name = "{:s}.py".format(typename)
 
     file_path = os.path.join(namespace, file_name)
     with open(file_path, "w") as f:
+        import_string = (
+            "# AUTO GENERATED FILE - DO NOT EDIT\n\n"
+            + "from dash.development.base_component import "
+            + "Component, _explicitize_args\n\n\n"
+        )
         f.write(import_string)
         f.write(class_string)
 
@@ -177,8 +177,7 @@ def generate_class(typename, props, description, namespace):
     scope = {"Component": Component, "_explicitize_args": _explicitize_args}
     # pylint: disable=exec-used
     exec(string, scope)
-    result = scope[typename]
-    return result
+    return scope[typename]
 
 
 def required_props(props):
@@ -262,11 +261,11 @@ def parse_wildcards(props):
     list
         List of Dash valid wildcard prefixes
     """
-    list_of_valid_wildcard_attr_prefixes = []
-    for wildcard_attr in ["data-*", "aria-*"]:
-        if wildcard_attr in props:
-            list_of_valid_wildcard_attr_prefixes.append(wildcard_attr[:-1])
-    return list_of_valid_wildcard_attr_prefixes
+    return [
+        wildcard_attr[:-1]
+        for wildcard_attr in ["data-*", "aria-*"]
+        if wildcard_attr in props
+    ]
 
 
 def reorder_props(props):

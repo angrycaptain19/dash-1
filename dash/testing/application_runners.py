@@ -192,12 +192,12 @@ class ProcessRunner(BaseDashRunner):
         self.port = port
         args = shlex.split(
             raw_command
-            if raw_command
-            else "waitress-serve --listen=0.0.0.0:{} {}:{}.server".format(
+            or "waitress-serve --listen=0.0.0.0:{} {}:{}.server".format(
                 port, app_module, application_name
             ),
             posix=not self.is_windows,
         )
+
 
         logger.debug("start dash process with %s", args)
 
@@ -327,8 +327,9 @@ class RRunner(ProcessRunner):
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                cwd=self.tmp_app_path if self.tmp_app_path else cwd,
+                cwd=self.tmp_app_path or cwd,
             )
+
             # wait until server is able to answer http request
             wait.until(lambda: self.accessible(self.url), timeout=start_timeout)
 
@@ -427,8 +428,9 @@ class JuliaRunner(ProcessRunner):
                 args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                cwd=self.tmp_app_path if self.tmp_app_path else cwd,
+                cwd=self.tmp_app_path or cwd,
             )
+
             # wait until server is able to answer http request
             wait.until(lambda: self.accessible(self.url), timeout=start_timeout)
 

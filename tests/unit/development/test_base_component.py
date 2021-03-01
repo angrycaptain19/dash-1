@@ -423,7 +423,7 @@ def test_debc025_iter():
 
 def test_debc026_component_not_children():
     children = [Component(id="a"), html.Div(id="b"), "c", 1]
-    for i in range(len(children)):
+    for child in children:
         # cycle through each component in each position
         children = children[1:] + [children[0]]
 

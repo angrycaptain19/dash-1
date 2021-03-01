@@ -257,7 +257,7 @@ class Browser(DashPageMixin):
             ((By.CSS_SELECTOR, selector),),
             timeout,
             "timeout {}s => waiting for selector {}".format(
-                timeout if timeout else self._wait_timeout, selector
+                timeout or self._wait_timeout, selector
             ),
         )
 
@@ -283,7 +283,7 @@ class Browser(DashPageMixin):
             ((By.ID, element_id),),
             timeout,
             "timeout {}s => waiting for element id {}".format(
-                timeout if timeout else self._wait_timeout, element_id
+                timeout or self._wait_timeout, element_id
             ),
         )
 
@@ -296,7 +296,7 @@ class Browser(DashPageMixin):
             args=(selector, style, val),
             timeout=timeout,
             msg="style val => {} {} not found within {}s".format(
-                style, val, timeout if timeout else self._wait_timeout
+                style, val, timeout or self._wait_timeout
             ),
         )
 
@@ -312,7 +312,7 @@ class Browser(DashPageMixin):
             args=(selector, text),
             timeout=timeout,
             msg="text -> {} not found within {}s".format(
-                text, timeout if timeout else self._wait_timeout
+                text, timeout or self._wait_timeout
             ),
         )
 
@@ -328,7 +328,7 @@ class Browser(DashPageMixin):
             args=(selector, text),
             timeout=timeout,
             msg="text -> {} not found inside element within {}s".format(
-                text, timeout if timeout else self._wait_timeout
+                text, timeout or self._wait_timeout
             ),
         )
 

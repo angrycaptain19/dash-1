@@ -38,7 +38,9 @@ def format_tag(tag_name, attributes, inner="", closed=False, opened=False):
         tag += ">" + inner + "</{tag}>"
     return tag.format(
         tag=tag_name,
-        attributes=" ".join(['{}="{}"'.format(k, v) for k, v in attributes.items()]),
+        attributes=" ".join(
+            '{}="{}"'.format(k, v) for k, v in attributes.items()
+        ),
     )
 
 
@@ -61,7 +63,7 @@ def get_asset_path(requests_pathname, asset_path, asset_url_path):
 def get_relative_path(requests_pathname, path):
     if requests_pathname == "/" and path == "":
         return "/"
-    elif requests_pathname != "/" and path == "":
+    elif path == "":
         return requests_pathname
     elif not path.startswith("/"):
         raise exceptions.UnsupportedRelativePath(

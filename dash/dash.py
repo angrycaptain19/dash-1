@@ -283,7 +283,7 @@ class Dash(object):
             if name is None:
                 name = getattr(server, "name", "__main__")
         elif isinstance(server, bool):
-            name = name if name else "__main__"
+            name = name or "__main__"
             self.server = flask.Flask(name) if server else None
         else:
             raise ValueError("server must be a Flask app or a boolean")
@@ -635,12 +635,10 @@ class Dash(object):
         links = self._collect_and_register_resources(self.css.get_all_css())
 
         return "\n".join(
-            [
-                format_tag("link", link, opened=True)
-                if isinstance(link, dict)
-                else '<link rel="stylesheet" href="{}">'.format(link)
-                for link in (external_links + links)
-            ]
+            format_tag("link", link, opened=True)
+            if isinstance(link, dict)
+            else '<link rel="stylesheet" href="{}">'.format(link)
+            for link in (external_links + links)
         )
 
     def _generate_scripts_html(self):
@@ -656,9 +654,10 @@ class Dash(object):
 
         deps = []
         for js_dist_dependency in dash_renderer._js_dist_dependencies:
-            dep = {}
-            for key, value in js_dist_dependency.items():
-                dep[key] = value[mode] if isinstance(value, dict) else value
+            dep = {
+                key: value[mode] if isinstance(value, dict) else value
+                for key, value in js_dist_dependency.items()
+            }
 
             deps.append(dep)
 
@@ -1117,11 +1116,7 @@ class Dash(object):
             else:
                 s = current.replace(walk_dir, "").lstrip("\\").lstrip("/")
                 splitted = slash_splitter.split(s)
-                if len(splitted) > 1:
-                    base = "/".join(slash_splitter.split(s))
-                else:
-                    base = splitted[0]
-
+                base = "/".join(slash_splitter.split(s)) if len(splitted) > 1 else splitted[0]
             if ignore_filter:
                 files_gen = (x for x in files if not ignore_filter.search(x))
             else:
@@ -1191,9 +1186,7 @@ class Dash(object):
         else:
             prefix = self.config.requests_pathname_prefix
 
-        asset = get_asset_path(prefix, path, self.config.assets_url_path.lstrip("/"))
-
-        return asset
+        return get_asset_path(prefix, path, self.config.assets_url_path.lstrip("/"))
 
     def get_relative_path(self, path):
         """
@@ -1232,9 +1225,7 @@ class Dash(object):
                 return chapters.page_2
         ```
         """
-        asset = get_relative_path(self.config.requests_pathname_prefix, path)
-
-        return asset
+        return get_relative_path(self.config.requests_pathname_prefix, path)
 
     def strip_relative_path(self, path):
         """

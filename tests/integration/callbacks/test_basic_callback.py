@@ -666,11 +666,7 @@ def test_cbsc015_input_output_callback(dash_duo):
     )
     def circular_output(v):
         ctx = dash.callback_context
-        if not ctx.triggered:
-            value = v
-        else:
-            value = v + 1
-        return value
+        return v if not ctx.triggered else v + 1
 
     call_count = Value("i", 0)
 

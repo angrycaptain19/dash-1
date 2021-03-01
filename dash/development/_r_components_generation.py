@@ -329,11 +329,9 @@ def generate_js_metadata(pkg_data, project_shortname):
             async_or_dynamic=async_or_dynamic,
         )
 
-    function_string = "".join(
+    return "".join(
         [function_frame_open, function_frame_body, frame_close_template]
     )
-
-    return function_string
 
 
 # determine whether dependency uses async or dynamic flag
@@ -384,10 +382,6 @@ def write_help_file(name, props, description, prefix, rpkg_data):
     item_text = ""
     accepted_wildcards = ""
 
-    # the return value of all Dash components should be the same,
-    # in an abstract sense -- they produce a list
-    value_text = "named list of JSON elements corresponding to React.js properties and their values"  # noqa:E501
-
     prop_keys = list(props.keys())
 
     if any(key.endswith("-*") for key in prop_keys):
@@ -427,6 +421,10 @@ def write_help_file(name, props, description, prefix, rpkg_data):
 
     file_path = os.path.join("man", file_name)
     with open(file_path, "w") as f:
+        # the return value of all Dash components should be the same,
+        # in an abstract sense -- they produce a list
+        value_text = "named list of JSON elements corresponding to React.js properties and their values"  # noqa:E501
+
         f.write(
             help_string.format(
                 funcname=funcname,
@@ -442,8 +440,8 @@ def write_help_file(name, props, description, prefix, rpkg_data):
     if rpkg_data is not None and "r_examples" in rpkg_data:
         ex = rpkg_data.get("r_examples")
         the_ex = ([e for e in ex if e.get("name") == funcname] or [None])[0]
-        result = ""
         if the_ex and "code" in the_ex.keys():
+            result = ""
             result += wrap(
                 "examples",
                 wrap("dontrun" if the_ex.get("dontrun") else "", the_ex["code"]),
@@ -465,13 +463,13 @@ def write_class_file(
     # from within Python
     write_help_file(name, props, description, prefix, rpkg_data)
 
-    import_string = "# AUTO GENERATED FILE - DO NOT EDIT\n\n"
     class_string = generate_class_string(name, props, project_shortname, prefix)
 
     file_name = format_fn_name(prefix, name) + ".R"
 
     file_path = os.path.join("R", file_name)
     with open(file_path, "w") as f:
+        import_string = "# AUTO GENERATED FILE - DO NOT EDIT\n\n"
         f.write(import_string)
         f.write(class_string)
 
@@ -568,7 +566,12 @@ def generate_rpkg(
     package_rauthors = ""
     lib_name = pkg_data.get("name")
 
-    if rpkg_data is not None:
+    if rpkg_data is None:
+        # fall back to using description in package.json, if present
+        package_title = pkg_data.get("description", "")
+        package_description = pkg_data.get("description", "")
+
+    else:
         if rpkg_data.get("pkg_help_title"):
             package_title = rpkg_data.get(
                 "pkg_help_title", pkg_data.get("description", "")
@@ -581,11 +584,6 @@ def generate_rpkg(
             package_copyright = "\nCopyright: {}".format(
                 rpkg_data.get("pkg_copyright", "")
             )
-    else:
-        # fall back to using description in package.json, if present
-        package_title = pkg_data.get("description", "")
-        package_description = pkg_data.get("description", "")
-
     package_version = pkg_data.get("version", "0.0.1")
 
     # remove leading and trailing commas, add space after comma if missing
@@ -650,15 +648,14 @@ def generate_rpkg(
                 package_author_fn, package_author_ln, package_author_email
             )
 
-    if not (os.path.isfile("LICENSE") or os.path.isfile("LICENSE.txt")):
-        package_license = pkg_data.get("license", "")
-    else:
+    if (os.path.isfile("LICENSE") or os.path.isfile("LICENSE.txt")):
         package_license = pkg_data.get("license", "") + " + file LICENSE"
         # R requires that the LICENSE.txt file be named LICENSE
         if not os.path.isfile("LICENSE"):
             os.symlink("LICENSE.txt", "LICENSE")
 
-    import_string = "# AUTO GENERATED FILE - DO NOT EDIT\n\n"
+    else:
+        package_license = pkg_data.get("license", "")
     packages_string = ""
 
     rpackage_list = package_depends.split(", ") + package_imports.split(", ")
@@ -684,6 +681,7 @@ def generate_rpkg(
     write_js_metadata(pkg_data, project_shortname, has_wildcards)
 
     with open("NAMESPACE", "w+") as f:
+        import_string = "# AUTO GENERATED FILE - DO NOT EDIT\n\n"
         f.write(import_string)
         f.write(export_string)
         f.write(packages_string)
@@ -710,17 +708,16 @@ def generate_rpkg(
     with open("DESCRIPTION", "w+") as f3:
         f3.write(description_string)
 
-    if rpkg_data is not None:
-        if rpkg_data.get("pkg_help_description"):
-            pkghelp = pkghelp_stub.format(
-                package_name=package_name,
-                pkg_help_title=rpkg_data.get("pkg_help_title"),
-                pkg_help_description=rpkg_data.get("pkg_help_description"),
-                lib_name=lib_name,
-                maintainer=maintainer,
-            )
-            with open(pkghelp_stub_path, "w") as f4:
-                f4.write(pkghelp)
+    if rpkg_data is not None and rpkg_data.get("pkg_help_description"):
+        pkghelp = pkghelp_stub.format(
+            package_name=package_name,
+            pkg_help_title=rpkg_data.get("pkg_help_title"),
+            pkg_help_description=rpkg_data.get("pkg_help_description"),
+            lib_name=lib_name,
+            maintainer=maintainer,
+        )
+        with open(pkghelp_stub_path, "w") as f4:
+            f4.write(pkghelp)
 
 
 # This converts a string from snake case to camel case
@@ -779,28 +776,30 @@ def generate_exports(
 
 
 def make_namespace_exports(components, prefix):
-    export_string = ""
-    for component in components:
+    export_string = "".join(
+        "export({}{})\n".format(prefix, component)
+        for component in components
         if (
             not component.endswith("-*")
             and str(component) not in r_keywords
             and str(component) not in ["setProps", "children"]
-        ):
-            export_string += "export({}{})\n".format(prefix, component)
+        )
+    )
 
-    # the following lines enable rudimentary support for bundling in
-    # R functions that are not automatically generated by the transpiler
-    # such that functions contained in the R subdirectory are exported,
-    # so long as they are not in utils.R.
-    rfilelist = []
     omitlist = ["utils.R", "internal.R"] + [
         "{}{}.R".format(prefix, component) for component in components
     ]
     fnlist = []
 
-    for script in os.listdir("R"):
-        if script.endswith(".R") and script not in omitlist:
-            rfilelist += [os.path.join("R", script)]
+    # the following lines enable rudimentary support for bundling in
+    # R functions that are not automatically generated by the transpiler
+    # such that functions contained in the R subdirectory are exported,
+    # so long as they are not in utils.R.
+    rfilelist = [
+        os.path.join("R", script)
+        for script in os.listdir("R")
+        if script.endswith(".R") and script not in omitlist
+    ]
 
     for rfile in rfilelist:
         with open(rfile, "r") as script:
@@ -926,8 +925,7 @@ def get_r_type(type_object, is_flow_type=False, indent_num=0):
     ):
         return ""
     elif js_type_name in js_to_r_types:
-        prop_type = js_to_r_types[js_type_name]()
-        return prop_type
+        return js_to_r_types[js_type_name]()
     return ""
 
 

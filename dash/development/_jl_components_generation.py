@@ -111,10 +111,9 @@ def jl_package_name(namestring):
 
 def stringify_wildcards(wclist, no_symbol=False):
     if no_symbol:
-        wcstring = "|".join("{}-".format(item) for item in wclist)
+        return "|".join("{}-".format(item) for item in wclist)
     else:
-        wcstring = ", ".join('Symbol("{}-")'.format(item) for item in wclist)
-    return wcstring
+        return ", ".join('Symbol("{}-")'.format(item) for item in wclist)
 
 
 def get_wildcards_jl(props):
@@ -235,8 +234,7 @@ def get_jl_type(type_object):
     js_type_name = type_object["name"]
     js_to_jl_types = get_jl_prop_types(type_object=type_object)
     if js_type_name in js_to_jl_types:
-        prop_type = js_to_jl_types[js_type_name]()
-        return prop_type
+        return js_to_jl_types[js_type_name]()
     return ""
 
 
@@ -389,18 +387,17 @@ def generate_package_file(project_shortname, components, pkg_data, prefix):
     package_string = jl_package_file_string.format(
         package_name=package_name,
         component_includes="\n".join(
-            [
-                jl_component_include_string.format(
-                    name=format_fn_name(prefix, comp_name)
-                )
-                for comp_name in components
-            ]
+            jl_component_include_string.format(
+                name=format_fn_name(prefix, comp_name)
+            )
+            for comp_name in components
         ),
         resources_dist=resources_dist,
         version=project_ver,
         project_shortname=project_shortname,
         base_package=base_package_name(project_shortname),
     )
+
     file_path = os.path.join("src", package_name + ".jl")
     with open(file_path, "w") as f:
         f.write(package_string)
@@ -493,7 +490,6 @@ def generate_class_string(name, props, description, project_shortname, prefix):
 
 def generate_struct_file(name, props, description, project_shortname, prefix):
     props = reorder_props(props=props)
-    import_string = "# AUTO GENERATED FILE - DO NOT EDIT\n"
     class_string = generate_class_string(
         name, props, description, project_shortname, prefix
     )
@@ -502,6 +498,7 @@ def generate_struct_file(name, props, description, project_shortname, prefix):
 
     file_path = os.path.join("src", file_name)
     with open(file_path, "w") as f:
+        import_string = "# AUTO GENERATED FILE - DO NOT EDIT\n"
         f.write(import_string)
         f.write(class_string)
 

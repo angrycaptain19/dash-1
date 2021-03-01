@@ -83,9 +83,7 @@ class Component(with_metaclass(ComponentMeta, object)):
         for k, v in list(kwargs.items()):
             # pylint: disable=no-member
             k_in_propnames = k in self._prop_names
-            k_in_wildcards = any(
-                [k.startswith(w) for w in self._valid_wildcard_attributes]
-            )
+            k_in_wildcards = any(k.startswith(w) for w in self._valid_wildcard_attributes)
             # e.g. "The dash_core_components.Dropdown component (version 1.6.0)
             # with the ID "my-dropdown"
             try:
@@ -160,13 +158,11 @@ class Component(with_metaclass(ComponentMeta, object)):
                 )
             }
         )
-        as_json = {
+        return {
             "props": props,
             "type": self._type,  # pylint: disable=no-member
             "namespace": self._namespace,  # pylint: disable=no-member
         }
-
-        return as_json
 
     # pylint: disable=too-many-branches, too-many-return-statements
     # pylint: disable=redefined-builtin, inconsistent-return-statements

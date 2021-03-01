@@ -59,7 +59,8 @@ def reloadable_app(**props_override):
     )
     def report_props(columns, hidden_columns):
         return "names: [{}]; hidden: [{}]".format(
-            ", ".join([col["name"] for col in columns]), ", ".join(hidden_columns or [])
+            ", ".join(col["name"] for col in columns),
+            ", ".join(hidden_columns or []),
         )
 
     return app
