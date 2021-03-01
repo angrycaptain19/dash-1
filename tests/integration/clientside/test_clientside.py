@@ -91,7 +91,7 @@ def test_clsd002_chained_serverside_clientside_callbacks(dash_duo):
     )
     def display_all(*args):
         call_counts["display"].value += 1
-        return "\n".join([str(a) for a in args])
+        return "\n".join(str(a) for a in args)
 
     app.clientside_callback(
         ClientsideFunction("clientside", "mean"),
